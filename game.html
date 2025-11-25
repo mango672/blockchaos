@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>BLOCK CHAOS</title>
+<style>
+html, body{
+    width:100%;
+    height:100%;
+    display:block;
+    margin:0;
+    font-family:"Segoe UI",Arial;
+    background:#0a0a0a;
+    overflow:hidden;
+}
+
+/* =====================================================
+   BACKGROUND ANIMATION
+   ===================================================== */
+@keyframes bgPulse{
+    0%{background:#1e3a8a}
+    25%{background:#44a3e5}
+    50%{background:#7c3aed}
+    75%{background:#9333ea}
+    100%{background:#1e3a8a}
+}
+
+/* =====================================================
+   MAIN MENU
+   ===================================================== */
+#menuScreen{
+    position:absolute;
+    inset:0;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    background:linear-gradient(45deg,#1e3a8a,#9333ea);
+    animation:bgPulse 9s ease infinite;
+    z-index:5;
+}
+
+#gameTitle span{
+    display:inline-block;
+    animation:wave 1s ease-in-out infinite;
+    font-size:62px;
+    font-weight:900;
+    color:#fff;
+}
+@keyframes wave{
+    0%{transform:translateY(0)}
+    50%{transform:translateY(-18px)}
+    100%{transform:translateY(0)}
+}
+
+.menuBtn{
+    font-size:28px;
+    padding:14px 35px;
+    margin:8px;
+    border-radius:12px;
+    cursor:pointer;
+    font-weight:600;
+    width:260px;
+    background:rgba(255,255,255,.1);
+    color:#fff;
+    border:2px solid rgba(255,255,255,.2);
+}
+.menuBtn:hover{transform:scale(1.08)}
+
+#shopBtn{
+    font-size:22px;
+    padding:10px 25px;
+    margin-top:25px;
+    background:rgba(255,255,255,.15);
+    color:#fff;
+    border-radius:10px;
+    cursor:pointer;
+    border:2px solid rgba(255,255,255,.25);
+}
+#shopBtn:hover{background:rgba(255,255,255,.3)}
+
+/* =====================================================
+   SHOP UI
+   ===================================================== */
+#shopPanel{
+    position:absolute;
+    width:500px;
+    height:600px;
+    background:rgba(0,0,0,.85);
+    backdrop-filter:blur(12px);
+    border-radius:15px;
+    border:2px solid rgba(255,255,255,.25);
+    left:50%;
+    top:50%;
+    transform:translate(-50%,-50%) scale(.0001);
+    padding:20px;
+    color:#fff;
+    transition:.25s ease;
+    z-index:99999;
+    overflow-y:auto;
+    scrollbar-width:none;
+}
+#shopPanel::-webkit-scrollbar{display:none}
+
+.shopItem{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    position:relative;
+    margin:6px 0;
+    padding:12px;
+    background:rgba(255,255,255,.12);
+    border-radius:10px;
+}
+
+.warn{
+    position:absolute;
+    top:-22px;
+    left:50%;
+    transform:translateX(-50%);
+    color:#ff7272;
+    font-size:14px;
+    font-weight:700;
+    animation:fadeOut 1.2s forwards;
+}
+@keyframes fadeOut{0%{opacity:1}100%{opacity:0}}
+
+.shopBuy{
+    background:#00c800;
+    border:none;
+    padding:7px 12px;
+    border-radius:8px;
+    cursor:pointer;
+    color:white;
+    font-weight:600;
+}
+.shopBuy.purchased{background:gray !important;cursor:not-allowed !important}
+
+.shopEquip{
+    background:#0078ff;
+    border:none;
+    padding:7px 12px;
+    border-radius:8px;
+    cursor:pointer;
+    color:white;
+    font-weight:600;
+}
+.shopEquip.equipped{background:limegreen !important;font-weight:900}
+
+#closeShopBtn{
+    font-size:22px;
+    padding:14px 10px;
+    margin:14px 0;
+    border-radius:12px;
+    cursor:pointer;
+    font-weight:700;
+    background:rgba(255,255,255,.15);
+    color:#fff;
+    border:2px solid rgba(255,255,255,.25);
+    width:100%;
+    text-align:center;
+}
+#closeShopBtn:hover{background:rgba(255,255,255,.32);transform:scale(1.04)}
+
+/* =====================================================
+   GAME SCREEN
+   ===================================================== */
+#gameScreen{
+    position:absolute;
+    inset:0;
+    display:none;
+    animation:bgPulse 9s ease infinite;
+    overflow:hidden;
+    z-index:1;
+}
+
+#pauseOverlay{
+    display:none;
+    position:absolute;
+    inset:0;
+    backdrop-filter:blur(8px);
+    background:rgba(0,0,0,.5);
+    z-index:200000;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+}
+
+.pauseBtn{
+    background:rgba(255,255,255,.2);
+    color:white;
+    border:2px solid rgba(255,255,255,.3);
+    padding:15px 30px;
+    border-radius:10px;
+    font-size:26px;
+    margin:10px;
+    cursor:pointer;
+}
+.pauseBtn:hover{
+    transform:scale(1.05);
+    background:rgba(255,255,255,.35);
+}
+
+#score{
+    display:none;
+    position:absolute;
+    top:12px;
+    left:12px;
+    font-size:24px;
+    background:rgba(255,255,255,.25);
+    padding:10px 17px;
+    border-radius:7px;
+    color:white;
+}
+
+#countdown{
+    display:none;
+    position:absolute;
+    top:40%;
+    left:50%;
+    transform:translate(-50%,-50%);
+    font-size:120px;
+    color:white;
+}
+
+.block{
+    position:absolute;
+    width:32px;
+    height:32px;
+    background:white;
+    border-radius:5px;
+}
+
+/* =====================================================
+   PLAYER DISPLAY
+   ===================================================== */
+#player1,#player2{
+    position:absolute;
+    bottom:30px;
+    width:48px;
+    height:48px;
+    transform:translateX(-50%);
+    border-radius:8px;
+    display:none;
+    z-index:9999;
+}
+
+.hearts{
+    position:absolute;
+    bottom:105px;
+    left:50%;
+    transform:translateX(-50%);
+    font-size:26px;
+    color:#ff4d4d;
+    letter-spacing:6px;
+}
+.nameTag{
+    position:absolute;
+    bottom:75px;
+    left:50%;
+    transform:translateX(-50%);
+    font-size:15px;
+    font-weight:600;
+    color:white;
+}
+@keyframes heartPop{
+    0%{transform:scale(1);opacity:1;filter:brightness(1)}
+    40%{transform:scale(1.8);opacity:1;filter:brightness(2)}
+    100%{transform:scale(0);opacity:0;filter:brightness(.4)}
+}
+.heartLose{animation:heartPop .4s ease-out forwards}
+
+/* =====================================================
+   SKINS
+   ===================================================== */
+.flame{background:linear-gradient(45deg,#ff6a00,#ff0000);animation:flameAnim .2s infinite}
+@keyframes flameAnim{0%{filter:brightness(1)}50%{filter:brightness(1.7)}100%{filter:brightness(1)}}
+.lightning{background:yellow;animation:lightningAnim .1s infinite}
+@keyframes lightningAnim{0%{filter:brightness(1)}50%{filter:brightness(2)}100%{filter:brightness(1)}}
+.ice{background:#6bd6ff;animation:iceAnim .7s infinite}
+@keyframes iceAnim{0%{filter:contrast(1)}50%{filter:contrast(1.4)}100%{filter:contrast(1)}}
+.rainbow{background:linear-gradient(90deg,red,orange,yellow,green,cyan,blue,violet);background-size:400% 400%;animation:rainbowAnim 3s infinite}
+@keyframes rainbowAnim{0%{background-position:0 50%}50%{background-position:100% 50%}100%{background-position:0 50%}}
+.diamond{background:#67fff7;animation:diamondAnim .6s infinite}
+@keyframes diamondAnim{0%{filter:drop-shadow(0 0 4px white)}50%{filter:drop-shadow(0 0 14px white)}100%{filter:drop-shadow(0 0 4px white)}}
+.ghost{background:white;opacity:.5}
+.neon{background:#29ffea;animation:neonAnim 1s infinite}
+@keyframes neonAnim{0%{box-shadow:0 0 10px #29ffea}50%{box-shadow:0 0 26px #29ffea}100%{box-shadow:0 0 10px #29ffea}}
+</style>
+</head>
+<body>
+
+<!-- =====================================================
+     MENU UI
+     ===================================================== -->
+<div id="menuScreen">
+    <div id="gameTitle">
+        <span>B</span><span>L</span><span>O</span><span>C</span><span>K</span>
+        <span>&nbsp;</span>
+        <span>C</span><span>H</span><span>A</span><span>O</span><span>S</span>
+    </div>
+    <button class="menuBtn" id="btn1p">1 PLAYER</button>
+    <button class="menuBtn" id="btn2p">2 PLAYER</button>
+    <button id="shopBtn">SHOP</button>
+</div>
+
+<!-- =====================================================
+     SHOP UI
+     ===================================================== -->
+<div id="shopPanel">
+    <h2>🛒 BLOCK CHAOS SHOP</h2>
+    <div id="currencyDisplay">Points: 0</div>
+    
+    <br><b>SKINS</b>
+    <div class="shopItem"><span>🔥 Flame</span><button class="shopBuy" id="buyFlame">Buy 25</button><button class="shopEquip" id="p1Flame">Equip P1</button><button class="shopEquip" id="p2Flame">Equip P2</button></div>
+    <div class="shopItem"><span>⚡ Lightning</span><button class="shopBuy" id="buyLightning">Buy 25</button><button class="shopEquip" id="p1Lightning">Equip P1</button><button class="shopEquip" id="p2Lightning">Equip P2</button></div>
+    <div class="shopItem"><span>❄ Ice</span><button class="shopBuy" id="buyIce">Buy 25</button><button class="shopEquip" id="p1Ice">Equip P1</button><button class="shopEquip" id="p2Ice">Equip P2</button></div>
+    <div class="shopItem"><span>🌈 Rainbow</span><button class="shopBuy" id="buyRainbow">Buy 30</button><button class="shopEquip" id="p1Rainbow">Equip P1</button><button class="shopEquip" id="p2Rainbow">Equip P2</button></div>
+    <div class="shopItem"><span>💎 Diamond</span><button class="shopBuy" id="buyDiamond">Buy 35</button><button class="shopEquip" id="p1Diamond">Equip P1</button><button class="shopEquip" id="p2Diamond">Equip P2</button></div>
+    <div class="shopItem"><span>👻 Ghost</span><button class="shopBuy" id="buyGhost">Buy 20</button><button class="shopEquip" id="p1Ghost">Equip P1</button><button class="shopEquip" id="p2Ghost">Equip P2</button></div>
+    <div class="shopItem"><span>🕶 Neon cyber</span><button class="shopBuy" id="buyNeon">Buy 30</button><button class="shopEquip" id="p1Neon">Equip P1</button><button class="shopEquip" id="p2Neon">Equip P2</button></div>
+
+    <br><b>UPGRADES</b>
+    <div class="shopItem"><span>🏃 Speed Upgrade</span><button class="shopBuy" id="buySpeed">Buy 30</button></div>
+    <div class="shopItem"><span>❤️ +1 Heart</span><button class="shopBuy" id="buyHeart">Buy 40</button></div>
+
+    <button id="closeShopBtn" onclick="closeShop()">✕ CLOSE SHOP</button>
+</div>
+
+
+<!-- =====================================================
+     GAME UI
+     ===================================================== -->
+<div id="gameScreen">
+    <div id="score">Score: 0</div>
+    <div id="countdown"></div>
+
+    <div id="player1"><div class="hearts" id="h1"></div><div class="nameTag">PLAYER 1</div></div>
+    <div id="player2"><div class="hearts" id="h2"></div><div class="nameTag">PLAYER 2</div></div>
+</div>
+
+<!-- =====================================================
+     PAUSE MENU
+     ===================================================== -->
+<div id="pauseOverlay">
+    <button class="pauseBtn" id="resumeBtn">RESUME</button>
+    <button class="pauseBtn" id="restartBtn">RESTART RUN</button>
+    <button class="pauseBtn" id="returnMenuBtn">RETURN TO MENU</button>
+</div>
+
+
+<script>
+/********************************************************************
+ SHOP + SKINS
+********************************************************************/
+const skins=[{name:"flame",price:25},{name:"lightning",price:25},{name:"ice",price:25},{name:"rainbow",price:30},{name:"diamond",price:35},{name:"ghost",price:20},{name:"neon",price:30}]
+function cap(s){return s.charAt(0).toUpperCase()+s.slice(1)}
+
+const shopPanel=document.getElementById("shopPanel")
+const player1=document.getElementById("player1")
+const player2=document.getElementById("player2")
+const hearts1=document.getElementById("h1")
+const hearts2=document.getElementById("h2")
+const currencyDisplay=document.getElementById("currencyDisplay")
+
+let totalPoints=Number(localStorage.getItem("BC_POINTS"))||0
+let ownedSkins=JSON.parse(localStorage.getItem("BC_SKINS"))||[]
+let p1Skin=localStorage.getItem("BC_P1SKIN")||"none"
+let p2Skin=localStorage.getItem("BC_P2SKIN")||"none"
+let extraHearts=Number(localStorage.getItem("BC_HEARTS"))||0
+
+function saveData(){
+    localStorage.setItem("BC_POINTS",totalPoints)
+    localStorage.setItem("BC_SKINS",JSON.stringify(ownedSkins))
+    localStorage.setItem("BC_P1SKIN",p1Skin)
+    localStorage.setItem("BC_P2SKIN",p2Skin)
+    localStorage.setItem("BC_HEARTS",extraHearts)
+}
+
+function warn(button,text){
+    let w=document.createElement("div")
+    w.classList.add("warn")
+    w.textContent=text
+    button.parentElement.appendChild(w)
+    setTimeout(()=>w.remove(),1200)
+}
+
+document.getElementById("shopBtn").onclick=()=>{
+    updateCurrencyDisplay()
+    updateShopButtons()
+    shopPanel.style.transform="translate(-50%,-50%) scale(1)"
+}
+function closeShop(){
+    shopPanel.style.transform="translate(-50%,-50%) scale(.0001)"
+}
+function updateCurrencyDisplay(){
+    currencyDisplay.textContent="Points: "+totalPoints
+}
+function updateShopButtons(){
+    skins.forEach(s=>{
+        let btn=document.getElementById("buy"+cap(s.name))
+        if(ownedSkins.includes(s.name)){
+            btn.textContent="Purchased"
+            btn.classList.add("purchased")
+            btn.disabled=true
+        }else{
+            btn.textContent="Buy "+s.price
+            btn.disabled=false
+            btn.classList.remove("purchased")
+        }
+    })
+    updateEquipButtons()
+}
+
+function buySkin(name,price,button){
+    if(ownedSkins.includes(name))return
+    if(totalPoints < price){warn(button,"Not enough points");return}
+    totalPoints -= price
+    ownedSkins.push(name)
+    saveData()
+    updateShopButtons()
+    updateCurrencyDisplay()
+}
+
+function equipSkinP1(name,button){
+    if(!ownedSkins.includes(name)){warn(button,"Must buy first");return}
+    p1Skin=name
+    saveData()
+    updateEquipButtons()
+    applySkins()
+}
+function equipSkinP2(name,button){
+    if(!ownedSkins.includes(name)){warn(button,"Must buy first");return}
+    p2Skin=name
+    saveData()
+    updateEquipButtons()
+    applySkins()
+}
+
+function updateEquipButtons(){
+    skins.forEach(s=>{
+        let b1=document.getElementById("p1"+cap(s.name))
+        let b2=document.getElementById("p2"+cap(s.name))
+        b1.textContent="Equip P1"
+        b2.textContent="Equip P2"
+        b1.classList.remove("equipped")
+        b2.classList.remove("equipped")
+    })
+    if(p1Skin!=="none"){
+        let b=document.getElementById("p1"+cap(p1Skin))
+        b.classList.add("equipped")
+        b.textContent="Equipped"
+    }
+    if(p2Skin!=="none"){
+        let b=document.getElementById("p2"+cap(p2Skin))
+        b.classList.add("equipped")
+        b.textContent="Equipped"
+    }
+}
+function applySkins(){
+    player1.className=p1Skin
+    player2.className=p2Skin
+}
+
+skins.forEach(s=>{
+    document.getElementById("buy"+cap(s.name)).onclick=(e)=>buySkin(s.name,s.price,e.target)
+    document.getElementById("p1"+cap(s.name)).onclick=(e)=>equipSkinP1(s.name,e.target)
+    document.getElementById("p2"+cap(s.name)).onclick=(e)=>equipSkinP2(s.name,e.target)
+})
+
+
+/********************************************************************
+ GAME ENGINE + ESC PAUSE MENU
+********************************************************************/
+let playerCount=1,gameRunning=false,paused=false,gameScore=0
+let blockSpeed=5,p1Hearts=3,p2Hearts=3
+let player1X=window.innerWidth*.25,player2X=window.innerWidth*.75
+
+const pauseOverlay=document.getElementById("pauseOverlay")
+const score=document.getElementById("score")
+
+document.getElementById("btn1p").onclick=()=>setupGame(1)
+document.getElementById("btn2p").onclick=()=>setupGame(2)
+
+function setupGame(count){
+    applySkins()
+    playerCount=count
+    menuScreen.style.display="none"
+    gameScreen.style.display="block"
+
+    p1Hearts=3+extraHearts
+    p2Hearts=3+extraHearts
+    hearts1.textContent="❤️".repeat(p1Hearts)
+    hearts2.textContent="❤️".repeat(p2Hearts)
+
+    player1.style.display="block"
+    if(playerCount===2)player2.style.display="block"
+
+    startCountdown()
+}
+
+/********** COUNTDOWN **********/
+function startCountdown(){
+    const nums=["3","2","1","GO!"]
+    let i=0
+    const cd=document.getElementById("countdown")
+    cd.style.display="block"
+    cd.textContent=nums[i]
+    let timer=setInterval(()=>{
+        i++
+        if(i<nums.length){cd.textContent=nums[i]}
+        else{
+            cd.style.display="none"
+            clearInterval(timer)
+            gameRunning=true
+        }
+    },900)
+}
+
+/********** MOVEMENT + ESC + PAUSE **********/
+let keys={}
+document.addEventListener("keydown",e=>{
+    keys[e.key]=true
+    if(e.key==="Escape")togglePauseMenu()
+})
+document.addEventListener("keyup",e=>keys[e.key]=false)
+
+function togglePauseMenu(){
+    paused=!paused
+    if(paused){
+        gameRunning=false
+        pauseOverlay.style.display="flex"
+    }else{
+        gameRunning=true
+        pauseOverlay.style.display="none"
+    }
+}
+
+document.getElementById("resumeBtn").onclick=()=>{
+    paused=false
+    gameRunning=true
+    pauseOverlay.style.display="none"
+}
+
+document.getElementById("restartBtn").onclick=()=>{
+    location.reload()
+}
+
+document.getElementById("returnMenuBtn").onclick=()=>{
+    paused=false
+    gameRunning=false
+    pauseOverlay.style.display="none"
+    gameScreen.style.display="none"
+    menuScreen.style.display="flex"
+    saveData()
+}
+
+function movementLoop(){
+    if(gameRunning){
+        if(keys["a"]||keys["A"])player1X-=7
+        if(keys["d"]||keys["D"])player1X+=7
+        if(keys["ArrowLeft"]) player2X-=7
+        if(keys["ArrowRight"])player2X+=7
+        
+        player1.style.left=player1X+"px"
+        player2.style.left=player2X+"px"
+    }
+    requestAnimationFrame(movementLoop)
+}
+movementLoop()
+
+function collides(block,px){
+    return(block.offsetTop>window.innerHeight-70&&block.offsetLeft>px-35&&block.offsetLeft<px+35)
+}
+
+/********** HEART LOSS ANIMATION **********/
+function loseHeart(player){
+    if(player===1){
+        animateHeartLoss(hearts1,p1Hearts)
+        p1Hearts--
+        if(p1Hearts<=0)endGame(playerCount===2?"PLAYER 2 WINS":"GAME OVER")
+    }else{
+        animateHeartLoss(hearts2,p2Hearts)
+        p2Hearts--
+        if(p2Hearts<=0)endGame("PLAYER 1 WINS")
+    }
+}
+function animateHeartLoss(container,remaining){
+    let hearts=container.textContent.split("❤️")
+    hearts.pop()
+    let index=hearts.length-1
+    container.innerHTML=""
+    hearts.forEach((h,i)=>{
+        let span=document.createElement("span")
+        span.textContent="❤️"
+        if(i===index)span.classList.add("heartLose")
+        container.appendChild(span)
+    })
+    setTimeout(()=>{
+        container.textContent="❤️".repeat(remaining-1)
+    },400)
+}
+
+/********** BLOCKS **********/
+setInterval(()=>{
+    if(!gameRunning)return
+    let block=document.createElement("div")
+    block.classList.add("block")
+    block.style.left=Math.random()*window.innerWidth+"px"
+    block.style.top="-50px"
+    gameScreen.appendChild(block)
+
+    let fall=setInterval(()=>{
+        if(!gameRunning){clearInterval(fall);return}
+        block.style.top=block.offsetTop+blockSpeed+"px"
+
+        if(collides(block,player1X)){
+            block.remove()
+            loseHeart(1)
+            clearInterval(fall)
+        }
+        if(playerCount===2&&collides(block,player2X)){
+            block.remove()
+            loseHeart(2)
+            clearInterval(fall)
+        }
+        if(block.offsetTop>window.innerHeight){
+            block.remove()
+            gameScore++
+            score.textContent="Score: "+gameScore
+            score.style.display="block"
+        }
+    },16)
+},700)
+
+/********** END GAME **********/
+function endGame(msg){
+    gameRunning=false
+    paused=true
+    pauseOverlay.style.display="flex"
+    score.textContent=msg
+    totalPoints+=gameScore
+    saveData()
+}
+</script>
+</body>
+</html>
